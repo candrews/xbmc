@@ -20,7 +20,8 @@ compiler:
   - clang
 
 env:
-  - BUILD=Kodi TOOLS=CMake
+  - BUILD=Kodi TOOLS=CMake CMAKE_GENERATOR=Ninja CMAKE_GENERATOR_COMMAND=ninja
+  - BUILD=Kodi TOOLS=CMake CMAKE_GENERATOR="Unix Makefiles" CMAKE_GENERATOR_COMMAND=make
 #  - ADDONS=audiodecoder
 #  - ADDONS=audioencoder
 #  - ADDONS=pvr
@@ -73,7 +74,7 @@ install:
       libpcre3-dev libplist-dev libpng-dev libpulse-dev libsmbclient-dev libsqlite3-dev
       libssl-dev libtag1-dev libtinyxml-dev libtool libudev-dev libusb-dev libva-dev libvdpau-dev
       libxml2-dev libxmu-dev libxrandr-dev libxrender-dev libxslt1-dev libxt-dev libyajl-dev mesa-utils
-      nasm pmount python-dev python-imaging python-sqlite rapidjson-dev swig unzip uuid-dev yasm zip zlib1g-dev;
+      nasm ninja-build pmount python-dev python-imaging python-sqlite rapidjson-dev swig unzip uuid-dev yasm zip zlib1g-dev;
     fi
 
 # Prepare builds
@@ -88,33 +89,33 @@ before_script:
       cd $TRAVIS_BUILD_DIR/build;
     fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$BUILD" == "Kodi" && "$CXX" == "g++" ]]; then
-      cmake -DCMAKE_BUILD_TYPE=Debug ..;
+      cmake -G"${CMAKE_GENERATOR}" -DCMAKE_BUILD_TYPE=Debug ..;
     fi
   - if [[ "$TRAVIS_OS_NAME" == "linux" && "$BUILD" == "Kodi" && "$CXX" == "clang++" ]]; then
-      cmake -DCMAKE_CXX_FLAGS="-Qunused-arguments" ..;
+      cmake -G"${CMAKE_GENERATOR}" -DCMAKE_CXX_FLAGS="-Qunused-arguments" ..;
     fi
   - if [[ "$BUILD" != "Kodi" ]] && [[ "$ADDONS" == "audiodecoder" || "$ADDONS" == "audioencoder" ||
           "$ADDONS" == "pvr" || "$ADDONS" == "screensaver" || "$ADDONS" == "visualization" ]]; then
       cd $TRAVIS_BUILD_DIR/cmake/addons &&
       mkdir -p build &&
       cd build/ &&
-      cmake ../bootstrap -DCMAKE_BUILD_TYPE=Debug &&
-      make -j4;
+      cmake -G"${CMAKE_GENERATOR}" ../bootstrap -DCMAKE_BUILD_TYPE=Debug &&
+      "${CMAKE_GENERATOR_COMMAND}" -j4;
     fi
 
 # Actually build
 #
 script:
   - if [[ "$BUILD" == "Kodi" ]]; then
-      make -j4 &&
-      make check;
+      "${CMAKE_GENERATOR_COMMAND}" -j4 &&
+      "${CMAKE_GENERATOR_COMMAND}" check;
     fi
   - if [[ "$BUILD" != "Kodi" ]] && [[ "$ADDONS" == "audiodecoder" || "$ADDONS" == "audioencoder" ||
           "$ADDONS" == "pvr" || "$ADDONS" == "screensaver" || "$ADDONS" == "visualization" ]]; then
       cd $TRAVIS_BUILD_DIR/ &&
       mkdir -p build &&
-      cmake -DADDONS_TO_BUILD="$ADDONS".* -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../addons $TRAVIS_BUILD_DIR/cmake/addons &&
-      make -j4;
+      cmake -G"${CMAKE_GENERATOR}" -DADDONS_TO_BUILD="$ADDONS".* -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=../addons $TRAVIS_BUILD_DIR/cmake/addons &&
+      "${CMAKE_GENERATOR_COMMAND}" -j4;
     fi
 
 after_failure:
