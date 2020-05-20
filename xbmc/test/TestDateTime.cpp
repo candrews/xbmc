@@ -572,7 +572,7 @@ TEST_F(TestDateTime, GetAsTimeStamp)
   dateTime += bias;
 #endif
 
-  EXPECT_TRUE(dateTime == fileTime);
+  EXPECT_EQ(dateTime, fileTime);
 }
 
 TEST_F(TestDateTime, GetAsUTCDateTime)
