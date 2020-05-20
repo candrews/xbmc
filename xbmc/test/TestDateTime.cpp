@@ -557,22 +557,20 @@ TEST_F(TestDateTime, GetAsTm)
   EXPECT_TRUE(dateTime == time);
 }
 
-// disabled on freebsd, I assume because the timezone isn't set properly
-// will investigate later
-#if defined(TARGET_DARWIN_OSX) || defined(TARGET_FREEBSD)
-TEST_F(TestDateTime, DISABLED_GetAsTimeStamp)
-#else
 TEST_F(TestDateTime, GetAsTimeStamp)
-#endif
 {
-  CDateTimeSpan bias = CDateTime::GetTimezoneBias();
 
   CDateTime dateTime;
   dateTime.SetDateTime(1991, 05, 14, 12, 34, 56);
 
   KODI::TIME::FileTime fileTime;
   dateTime.GetAsTimeStamp(fileTime);
+
+// Windows fileTimes have the bias in them
+#if defined(TARGET_WINDOWS)
+  CDateTimeSpan bias = CDateTime::GetTimezoneBias();
   dateTime += bias;
+#endif
 
   EXPECT_TRUE(dateTime == fileTime);
 }
